@@ -30,7 +30,7 @@ public interface Mongo {
     public List<Task> getAllTasksByPriority(int priority);
 
     //ziskanie taskov podla mena
-    public List<Task> getAllTasksByName();
+    public List<Task> getAllTasksByName(String name);
 
     //vymaze tasky Done
     public void deleteDoneTasks();

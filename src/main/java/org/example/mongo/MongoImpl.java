@@ -31,12 +31,18 @@ public class MongoImpl implements Mongo{
         Date date = new Date();
         String date1 = date.toString();
         //new MongoImpl().insertIntoReminder(date1, "Opravit bicykel",2, 15);
-        Task task = new Task(date, "Opravit zachod", 3,45, false);
-        //new MongoImpl().insertTask(task);
-        new MongoImpl().getAllTasks();
+        Task task = new Task(date, "Vymenit koleso", 2,2, false);
+        new MongoImpl().insertTask(task);
+        //new MongoImpl().getAllTasks();
         //String hexString = "6079505597dde44e325ff1a1";
         //System.out.println(new ObjectId(hexString));
         //new MongoImpl().setTaskToDone(new ObjectId(hexString));
+
+        System.out.println("---");
+        List<Task> list = new MongoImpl().getAllTasksByPriority();
+        for(Task t : list){
+            System.out.println(t.toString());
+        }
     }
 
     //////
@@ -144,17 +150,139 @@ public class MongoImpl implements Mongo{
 
     @Override
     public List<Task> getAllTasks(boolean done) {
-        return null;
+        //vytiahnut kolekciu users z databazy mongo -> allUsers
+        MongoCollection<Document> collection = database.getCollection("myReminders")
+                .withReadPreference(ReadPreference.primary())
+                .withReadConcern(ReadConcern.MAJORITY)
+                .withWriteConcern(WriteConcern.MAJORITY);
+        List<Task> list = new ArrayList<>();
+        for(Document document : collection.find()){
+            ObjectId id = document.getObjectId("_id");
+            if(document.containsKey("Price")){
+                Task task = new Task(document.getDate("Date"), document.getString("Name"), document.getInteger("Priority"), document.getDouble("Price"), document.getBoolean("Done"));
+                if(task.isDone() == done){
+                    task.setId(id);
+                    list.add(task);
+                }
+                //System.out.println(task.toString());
+            }else{
+                Task task = new Task(document.getDate("Date"), document.getString("Name"), document.getInteger("Priority"), document.getBoolean("Done"));
+                if(task.isDone() == done){
+                    task.setId(id);
+                    list.add(task);
+                }
+                //System.out.println(task.toString());
+            }
+
+        }
+        return list;
+    }
+
+
+
+    public List<Task> getAllTasksByPriority() {
+        //vytiahnut kolekciu users z databazy mongo -> allUsers
+        MongoCollection<Document> collection = database.getCollection("myReminders")
+                .withReadPreference(ReadPreference.primary())
+                .withReadConcern(ReadConcern.MAJORITY)
+                .withWriteConcern(WriteConcern.MAJORITY);
+        List<Task> list = new ArrayList<>();
+        for(Document document : collection.find()){
+            ObjectId id = document.getObjectId("_id");
+            if(document.containsKey("Price")){
+                Task task = new Task(document.getDate("Date"), document.getString("Name"), document.getInteger("Priority"), document.getDouble("Price"), document.getBoolean("Done"));
+                task.setId(id);
+                list.add(task);
+                System.out.println(task.toString());
+            }else{
+                Task task = new Task(document.getDate("Date"), document.getString("Name"), document.getInteger("Priority"), document.getBoolean("Done"));
+                task.setId(id);
+                list.add(task);
+                task.toString();
+                System.out.println(task.toString());
+            }
+        }
+        //prekopirovanie arraya do pola
+        Task[] tasks = new Task[list.size()];
+        for(int i = 0; i < list.size(); i++){
+            tasks[i] = list.get(i);
+        }
+
+        //buble sort na zoradenie od najensieho cisla po najvacsie
+        for(int i = 0; i < tasks.length; i++){
+            for(int j = 0; j < tasks.length; j++){
+                if(tasks[i].getPriority()>tasks[j].getPriority()){
+                    Task helpTask = tasks[i];
+                    tasks[i] = tasks[j];
+                    tasks[j] = helpTask;
+                }
+            }
+        }
+
+        List<Task> listok = new ArrayList<>();
+
+        //z pola na arraylist
+
+        for(int i = 0; i < tasks.length; i++){
+            listok.add(i,tasks[i]);
+        }
+        return listok;
+    }
+
+
+    @Override
+    public List<Task> getAllTasksByPriority(int priority){
+        //vytiahnut kolekciu users z databazy mongo -> allUsers
+        MongoCollection<Document> collection = database.getCollection("myReminders")
+                .withReadPreference(ReadPreference.primary())
+                .withReadConcern(ReadConcern.MAJORITY)
+                .withWriteConcern(WriteConcern.MAJORITY);
+        List<Task> list = new ArrayList<>();
+        for(Document document : collection.find()){
+            ObjectId id = document.getObjectId("_id");
+            if(document.containsKey("Price")){
+                Task task = new Task(document.getDate("Date"), document.getString("Name"), document.getInteger("Priority"), document.getDouble("Price"), document.getBoolean("Done"));
+                task.setId(id);
+                if(task.getPriority() == priority){
+                    list.add(task);
+                }
+            }else{
+                Task task = new Task(document.getDate("Date"), document.getString("Name"), document.getInteger("Priority"), document.getBoolean("Done"));
+                task.setId(id);
+                if(task.getPriority() == priority){
+                    list.add(task);
+                }
+            }
+        }
+        return list;
     }
 
     @Override
-    public List<Task> getAllTasksByPriority(int priority) {
-        return null;
-    }
+    public List<Task> getAllTasksByName(String name) {
+        //vytiahnut kolekciu users z databazy mongo -> allUsers
+        MongoCollection<Document> collection = database.getCollection("myReminders")
+                .withReadPreference(ReadPreference.primary())
+                .withReadConcern(ReadConcern.MAJORITY)
+                .withWriteConcern(WriteConcern.MAJORITY);
+        List<Task> list = new ArrayList<>();
+        for(Document document : collection.find()){
+            ObjectId id = document.getObjectId("_id");
+            if(document.containsKey("Price")){
+                Task task = new Task(document.getDate("Date"), document.getString("Name"), document.getInteger("Priority"), document.getDouble("Price"), document.getBoolean("Done"));
+                task.setId(id);
+                    if(task.getName().equals(name)){
+                        list.add(task);
+                    }
+            }else{
+                Task task = new Task(document.getDate("Date"), document.getString("Name"), document.getInteger("Priority"), document.getBoolean("Done"));
+                task.setId(id);
+                    if(task.getName().equals(name)){
+                        list.add(task);
+                    }
+            }
+        }
+        return list;
 
-    @Override
-    public List<Task> getAllTasksByName() {
-        return null;
     }
 
     @Override

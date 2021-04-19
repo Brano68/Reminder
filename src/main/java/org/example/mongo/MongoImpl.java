@@ -1,6 +1,9 @@
 package org.example.mongo;
 
 import com.mongodb.MongoClient;
+import com.mongodb.ReadConcern;
+import com.mongodb.ReadPreference;
+import com.mongodb.WriteConcern;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -10,6 +13,7 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.collection.Task;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -27,12 +31,12 @@ public class MongoImpl implements Mongo{
         Date date = new Date();
         String date1 = date.toString();
         //new MongoImpl().insertIntoReminder(date1, "Opravit bicykel",2, 15);
-        Task task = new Task(date, "Umyt okno", 3, 0, false);
+        Task task = new Task(date, "Opravit zachod", 3,45, false);
         //new MongoImpl().insertTask(task);
-
-        String hexString = "6079505597dde44e325ff1a1";
-        System.out.println(new ObjectId(hexString));
-        new MongoImpl().setTaskToDone(new ObjectId(hexString));
+        new MongoImpl().getAllTasks();
+        //String hexString = "6079505597dde44e325ff1a1";
+        //System.out.println(new ObjectId(hexString));
+        //new MongoImpl().setTaskToDone(new ObjectId(hexString));
     }
 
     //////
@@ -58,15 +62,33 @@ public class MongoImpl implements Mongo{
     @Override
     public void insertTask(Task task) {
         //database.createCollection("myReminders");
+
+        if(task == null){
+            System.out.println("Task is null!!!");
+            return;
+        }
+
         Document document = new Document();
-        document.append("Date", task.getDate().toString());
+        document.append("Date", task.getDate());
         document.append("Name", task.getName());
         document.append("Done", task.isDone());
         document.append("Priority", task.getPriority());
-        document.append("Price", task.getPrice());
-        //vkladanie dokumentu do kolekcie
-        database.getCollection("myReminders").insertOne(document);
-        System.out.println("Document inserted successfully");
+        //document.append("Price", task.getPrice());
+        if(task.getPrice() >= 0.0){
+            document.append("Price", task.getPrice());
+        }
+        if(task.getId() != null){
+            document.append("_id", task.getId());
+        }
+
+        try {
+            //vkladanie dokumentu do kolekcie
+            database.getCollection("myReminders").insertOne(document);
+            System.out.println("Document inserted successfully");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 
     @Override
@@ -88,7 +110,36 @@ public class MongoImpl implements Mongo{
 
     @Override
     public List<Task> getAllTasks() {
-        return null;
+        //vytiahnut kolekciu users z databazy mongo -> allUsers
+        MongoCollection<Document> collection = database.getCollection("myReminders")
+                .withReadPreference(ReadPreference.primary())
+                .withReadConcern(ReadConcern.MAJORITY)
+                .withWriteConcern(WriteConcern.MAJORITY);
+        List<Task> list = new ArrayList<>();
+        for(Document document : collection.find()){
+            ObjectId id = document.getObjectId("_id");
+            if(document.containsKey("Price")){
+                Task task = new Task(document.getDate("Date"), document.getString("Name"), document.getInteger("Priority"), document.getDouble("Price"), document.getBoolean("Done"));
+                task.setId(id);
+                list.add(task);
+                System.out.println(task.toString());
+            }else{
+                Task task = new Task(document.getDate("Date"), document.getString("Name"), document.getInteger("Priority"), document.getBoolean("Done"));
+                task.setId(id);
+                list.add(task);
+                task.toString();
+                System.out.println(task.toString());
+            }
+
+            //System.out.println(document.get("name"));
+            //System.out.println(task.getDate() + " " + task.getName() + " " + task.getPriority() + " " + task.getPrice() + " " + task.isDone());
+            //System.out.println(document.getDate("Date"));
+            //System.out.println(document.getString("Name"));
+            //System.out.println(document.getDate("Priority"));
+            //System.out.println(document.getDate("Price"));
+            //System.out.println(document.getDate("Done"));
+        }
+        return list;
     }
 
     @Override

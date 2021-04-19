@@ -13,12 +13,24 @@ public class Task {
     private double price;
 
 
+
     public Task(Date date, String name, int priority, double price, boolean done){
+        this(date, name, priority, done);
+        this.price = price;
+        this.id = null;
+    }
+
+
+    public Task(Date date, String name, int priority, boolean done) {
         this.date = date;
         this.name = name;
-        this.priority = priority;
-        this.price = price;
         this.done = done;
+        this.priority = priority;
+        this.price = -1;
+    }
+
+    public void setId(ObjectId id) {
+        this.id = id;
     }
 
     public ObjectId getId() {
@@ -43,5 +55,14 @@ public class Task {
 
     public double getPrice() {
         return price;
+    }
+
+    @Override
+    public String toString() {
+        if(price == -1){
+            return "Task: " + "id: " + id + " Name: " + name + " Priority: " + priority + " Done: " + done + " Date: " + date;
+        }else{
+            return "Task: " + "id: " + id + " Name: " + name + " Priority: " + priority + " Done: " + done + " Date: " + date + "Price: " + price;
+        }
     }
 }

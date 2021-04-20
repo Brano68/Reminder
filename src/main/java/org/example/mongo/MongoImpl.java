@@ -32,14 +32,15 @@ public class MongoImpl implements Mongo{
         String date1 = date.toString();
         //new MongoImpl().insertIntoReminder(date1, "Opravit bicykel",2, 15);
         Task task = new Task(date, "Vymenit koleso", 2,2, false);
-        new MongoImpl().insertTask(task);
+        //new MongoImpl().insertTask(task);
         //new MongoImpl().getAllTasks();
         //String hexString = "6079505597dde44e325ff1a1";
         //System.out.println(new ObjectId(hexString));
         //new MongoImpl().setTaskToDone(new ObjectId(hexString));
 
         System.out.println("---");
-        List<Task> list = new MongoImpl().getAllTasksByPriority();
+        List<Task> list = new MongoImpl().getAllTasksByName("zamok");
+
         for(Task t : list){
             System.out.println(t.toString());
         }
@@ -267,16 +268,19 @@ public class MongoImpl implements Mongo{
         List<Task> list = new ArrayList<>();
         for(Document document : collection.find()){
             ObjectId id = document.getObjectId("_id");
+
             if(document.containsKey("Price")){
                 Task task = new Task(document.getDate("Date"), document.getString("Name"), document.getInteger("Priority"), document.getDouble("Price"), document.getBoolean("Done"));
                 task.setId(id);
-                    if(task.getName().equals(name)){
+                    //if(task.getName().equals(name)){
+                    if(task.getName().contains(name)){
                         list.add(task);
                     }
             }else{
                 Task task = new Task(document.getDate("Date"), document.getString("Name"), document.getInteger("Priority"), document.getBoolean("Done"));
                 task.setId(id);
-                    if(task.getName().equals(name)){
+                    //if(task.getName().equals(name)){
+                    if(task.getName().contains(name)){
                         list.add(task);
                     }
             }
@@ -287,6 +291,7 @@ public class MongoImpl implements Mongo{
 
     @Override
     public void deleteDoneTasks() {
+
 
     }
 }

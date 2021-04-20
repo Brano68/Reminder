@@ -12,12 +12,15 @@ import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.collection.Task;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class MongoImpl implements Mongo{
+public class MongoImpl implements Mongo, MongoJSON{
     //database name: Reminder
     //database collection: myReminders
 
@@ -44,6 +47,8 @@ public class MongoImpl implements Mongo{
         for(Task t : list){
             System.out.println(t.toString());
         }
+        System.out.println("JSON");
+        System.out.println(new MongoImpl().getAllTasksJSON());
     }
 
     //////
@@ -292,6 +297,65 @@ public class MongoImpl implements Mongo{
     @Override
     public void deleteDoneTasks() {
 
+    }
 
+
+
+
+    @Override
+    public void insertTaskJSON(JSONObject tasks) {
+        String name = (String)tasks.get("Name");
+        ObjectId id = (ObjectId) tasks.get("_id");
+        int priority = ((Long)tasks.get("Priority")).intValue();
+        boolean done = (boolean)tasks.get("Done");
+        Date date = (Date)tasks.get("Date");
+        if(tasks.containsKey("Price")){
+            double price = (double)tasks.get("Pice");
+            Document document = new Document();
+            document.append("Date", date);
+            document.append("Name", name);
+            document.append("Done", done);
+            document.append("Priority", priority);
+            document.append("Price", price);
+            database.getCollection("myReminders").insertOne(document);
+            return;
+        }
+        Document document = new Document();
+        document.append("Date", date);
+        document.append("Name", name);
+        document.append("Done", done);
+        document.append("Priority", priority);
+        database.getCollection("myReminders").insertOne(document);
+    }
+
+    @Override
+    public JSONObject getAllTasksJSON() {
+        JSONObject jsonObject = new JSONObject();
+        JSONArray jsonArray = new JSONArray();
+
+        List<Task> list = getAllTasks();
+        for(int i = 0; i < list.size(); i++){
+            Task task = list.get(i);
+            if(task.getPrice() == -1){
+                JSONObject js = new JSONObject();
+                js.put("_id", task.getId());
+                js.put("Name", task.getName());
+                js.put("Priority", task.getPriority());
+                js.put("Date", task.getDate());
+                js.put("Done", task.isDone());
+                jsonArray.add(js);
+            }else{
+                JSONObject js = new JSONObject();
+                js.put("_id", task.getId());
+                js.put("Name", task.getName());
+                js.put("Priority", task.getPriority());
+                js.put("Date", task.getDate());
+                js.put("Done", task.isDone());
+                js.put("Price", task.getPrice());
+                jsonArray.add(js);
+            }
+        }
+        jsonObject.put("AllReminders", jsonArray);
+        return jsonObject;
     }
 }

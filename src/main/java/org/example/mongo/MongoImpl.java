@@ -40,7 +40,7 @@ public class MongoImpl implements Mongo, MongoJSON{
         //String hexString = "6079505597dde44e325ff1a1";
         //System.out.println(new ObjectId(hexString));
         //new MongoImpl().setTaskToDone(new ObjectId(hexString));
-
+/*
         System.out.println("---");
         List<Task> list = new MongoImpl().getAllTasksByName("zamok");
 
@@ -49,6 +49,18 @@ public class MongoImpl implements Mongo, MongoJSON{
         }
         System.out.println("JSON");
         System.out.println(new MongoImpl().getAllTasksJSON());
+
+ */
+        //testovanie
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("Name", "Zametat dvor");
+        jsonObject.put("Date", new Date());
+        jsonObject.put("Done", false);
+        jsonObject.put("Priority", 5);
+        jsonObject.put("Price", 8.5);
+        MongoImpl mongo = new MongoImpl();
+        //mongo.insertTaskJSON(jsonObject);
+        System.out.println(mongo.getAllTasksJSON());
     }
 
     //////
@@ -306,11 +318,11 @@ public class MongoImpl implements Mongo, MongoJSON{
     public void insertTaskJSON(JSONObject tasks) {
         String name = (String)tasks.get("Name");
         ObjectId id = (ObjectId) tasks.get("_id");
-        int priority = ((Long)tasks.get("Priority")).intValue();
+        int priority = (int)tasks.get("Priority");
         boolean done = (boolean)tasks.get("Done");
         Date date = (Date)tasks.get("Date");
         if(tasks.containsKey("Price")){
-            double price = (double)tasks.get("Pice");
+            double price = (double)tasks.get("Price");
             Document document = new Document();
             document.append("Date", date);
             document.append("Name", name);
